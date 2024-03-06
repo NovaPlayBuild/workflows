@@ -35,7 +35,7 @@ on:
         required: true
 
 jobs:
-  lint:
+  commands:
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ inputs.name }}-${{ github.ref }}
