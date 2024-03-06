@@ -30,7 +30,7 @@ on:
         type: string
     secrets:
       pat:
-        required: true
+        required: false
       NPM_TOKEN:
         required: true
 
@@ -45,6 +45,9 @@ jobs:
         with:
           submodules: 'recursive'
           token: ${{ secrets.pat }}
+        if: "${{ secrets.pat != '' }}"
+      - uses: actions/checkout@v3
+        if: "${{ secrets.pat == '' }}"
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ inputs.node_version }}
