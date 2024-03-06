@@ -28,6 +28,9 @@ on:
       command_two_name:
         required: false
         type: string
+      checkout_recursive:
+        required: true
+        type: boolean
     secrets:
       pat:
         required: false
@@ -45,9 +48,9 @@ jobs:
         with:
           submodules: 'recursive'
           token: ${{ secrets.pat }}
-        if: "${{ secrets.pat != '' }}"
+        if: ${{ inputs.checkout_recursive }}
       - uses: actions/checkout@v3
-        if: "${{ secrets.pat == '' }}"
+        if: ${{ !inputs.checkout_recursive }}
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ inputs.node_version }}
