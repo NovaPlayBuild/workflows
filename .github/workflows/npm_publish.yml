@@ -1,0 +1,78 @@
+name: Release to npm
+
+on:
+  workflow_call:
+    inputs:
+      node_version:
+        required: true
+        type: string
+      # pnpm, yarn, or npm
+      pkg_manager:
+        required: true
+        type: string
+      install:
+        required: true
+        type: string
+      build:
+        required: true
+        type: string
+      publish:
+        required: true
+        type: string
+    secrets:
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.input_var }}
+          cache: ${{ inputs.pkg_manager }}
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ./.npmrc
+          ${{ inputs.install }}
+
+      - name: Get previous version
+        id: get_previous_version
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ./.npmrc
+          ${{ inputs.pkg_manager }} info @hyperplay/ui version --verbose
+          echo ::set-output name=previous_version::$(${{ inputs.pkg_manager }} info @hyperplay/ui version | sed -n 2p | tr -d '[:space:]')
+
+      - name: Set current version
+        id: set_current_version
+        run: echo ::set-output name=current_version::$(node -p "require('./package.json').version")
+
+      - name: Compare versions
+        id: compare_versions
+        env:
+          PREVIOUS_VERSION: ${{ steps.get_previous_version.outputs.previous_version }}
+          CURRENT_VERSION: ${{ steps.set_current_version.outputs.current_version }}
+        run: echo ::set-output name=do_release::$(node -p "Number(process.env.INPUT_FORCE_RELEASE) || require('semver/functions/gt')(process.env.CURRENT_VERSION, process.env.PREVIOUS_VERSION)")
+
+      - name: Build @hyperplay/ui
+        if: steps.compare_versions.outputs.do_release == 'true'
+        run: |
+          ${{ inputs.build }}
+
+      - name: Release to npm
+        if: steps.compare_versions.outputs.do_release == 'true'
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ./.npmrc
+          if [[ ${{ steps.set_current_version.outputs.current_version }} == *"-alpha"* ]]; then
+            ${{ inputs.publish }} --tag alpha
+          elif [[ ${{ steps.set_current_version.outputs.current_version }} == *"-beta"* ]]; then
+            ${{ inputs.publish }} --tag beta
+          else
+            ${{ inputs.publish }}
+          fi;
