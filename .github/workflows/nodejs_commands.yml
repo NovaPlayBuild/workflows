@@ -1,0 +1,64 @@
+name: Setup Node.js Env and Run Commands
+
+on:
+  workflow_call:
+    inputs:
+      node_version:
+        required: true
+        type: string
+      # pnpm, yarn, or npm
+      pkg_manager:
+        required: true
+        type: string
+      install:
+        required: true
+        type: string
+      name:
+        required: true
+        type: string
+      command_one:
+        required: true
+        type: string
+      command_one_name:
+        required: true
+        type: string
+      command_two:
+        required: false
+        type: string
+      command_two_name:
+        required: false
+        type: string
+    secrets:
+      pat:
+        required: true
+      NPM_TOKEN:
+        required: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ inputs.name }}-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+          token: ${{ secrets.pat }}
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node_version }}
+          cache: ${{ inputs.pkg_manager }}
+      - name: Reconfigure git to use HTTP authentication
+        run: >
+          git config --global url."https://github.com/".insteadOf
+          ssh://git@github.com/
+      - name: Authenticate with private NPM package
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+      - name: Install modules.
+        run: ${{ inputs.install }}
+      - name: ${{ inputs.command_one_name }}
+        run: ${{ inputs.command_one }}
+      - name: ${{ inputs.command_two_name }}
+        run: ${{ inputs.command_two }}
+        if: ${{ inputs.command_two }}
