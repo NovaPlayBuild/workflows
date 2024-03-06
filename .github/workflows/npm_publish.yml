@@ -10,6 +10,9 @@ on:
       pkg_manager:
         required: true
         type: string
+      pkg_manager_add:
+        required: true
+        type: string
       install:
         required: true
         type: string
@@ -41,6 +44,9 @@ jobs:
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ./.npmrc
           ${{ inputs.install }}
+      
+      - name: Add semver dev dep
+        run: ${{ inputs.pkg_manager_add }} semver -D
 
       - name: Get previous version
         id: get_previous_version
