@@ -52,8 +52,8 @@ jobs:
         id: get_previous_version
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" >> ./.npmrc
-          ${{ inputs.pkg_manager }} info @hyperplay/ui version --verbose
-          echo ::set-output name=previous_version::$(${{ inputs.pkg_manager }} info @hyperplay/ui version | sed -n 2p | tr -d '[:space:]')
+          ${{ inputs.pkg_manager }} info $(node -p "require('./package.json').name") version --verbose
+          echo ::set-output name=previous_version::$(${{ inputs.pkg_manager }} info $(node -p "require('./package.json').name") version | sed -n 2p | tr -d '[:space:]')
 
       - name: Set current version
         id: set_current_version
@@ -66,7 +66,7 @@ jobs:
           CURRENT_VERSION: ${{ steps.set_current_version.outputs.current_version }}
         run: echo ::set-output name=do_release::$(node -p "Number(process.env.INPUT_FORCE_RELEASE) || require('semver/functions/gt')(process.env.CURRENT_VERSION, process.env.PREVIOUS_VERSION)")
 
-      - name: Build @hyperplay/ui
+      - name: Build package
         if: steps.compare_versions.outputs.do_release == 'true'
         run: |
           ${{ inputs.build }}
