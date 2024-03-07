@@ -64,7 +64,6 @@ jobs:
         env:
           PREVIOUS_VERSION: ${{ steps.get_previous_version.outputs.previous_version }}
           CURRENT_VERSION: ${{ steps.set_current_version.outputs.current_version }}
-          NODE_DEBUG: 'semver'
         run: echo ::set-output name=do_release::$(node -p "Number(process.env.INPUT_FORCE_RELEASE) || require('semver/functions/gt')(process.env.CURRENT_VERSION, process.env.PREVIOUS_VERSION)")
 
       - name: Build package
