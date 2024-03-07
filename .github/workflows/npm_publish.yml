@@ -10,7 +10,7 @@ on:
       pkg_manager:
         required: true
         type: string
-      pkg_manager_add:
+      pkg_manager_add_dev_dep:
         required: true
         type: string
       install:
@@ -46,7 +46,7 @@ jobs:
           ${{ inputs.install }}
       
       - name: Add semver dev dep
-        run: ${{ inputs.pkg_manager_add }} semver -D
+        run: ${{ inputs.pkg_manager_add_dev_dep }} semver
 
       - name: Get previous version
         id: get_previous_version
