@@ -51,6 +51,11 @@ jobs:
         if: ${{ inputs.checkout_recursive }}
       - uses: actions/checkout@v3
         if: ${{ !inputs.checkout_recursive }}
+      # pnpm has to be added before setup node https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#caching-packages-data
+      - uses: pnpm/action-setup@v3
+        with:
+          version: latest
+        if: ${{ inputs.pkg_manager }} == 'pnpm'
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ inputs.node_version }}

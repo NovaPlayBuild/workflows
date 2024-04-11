@@ -33,6 +33,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # pnpm has to be added before setup node https://github.com/actions/setup-node/blob/main/docs/advanced-usage.md#caching-packages-data
+      - uses: pnpm/action-setup@v3
+        with:
+          version: latest
+        if: ${{ inputs.pkg_manager }} == 'pnpm'
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
