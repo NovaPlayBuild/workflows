@@ -85,6 +85,8 @@ jobs:
             ${{ inputs.publish }} --tag alpha
           elif [[ ${{ steps.set_current_version.outputs.current_version }} == *"-beta"* ]]; then
             ${{ inputs.publish }} --tag beta
+          elif [[ ${{ inputs.pkg_manager }} == 'pnpm' ]]; then
+            ${{ inputs.publish }} --no-git-checks
           else
             ${{ inputs.publish }}
           fi;
